@@ -66,6 +66,8 @@ fmt::color lighter(fmt::color c, double percents) {
 }
 } // namespace
 
+inline void log_empty_line() { fmt::print(stderr, "\n"); }
+
 template <class... Args>
 void log_impl(log_level_t level, int line, std::string_view file_name,
               std::string_view module_name, fmt::format_string<Args...> fmt,
@@ -135,30 +137,35 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
   const auto lvl_s = [level]() -> std::string_view {
     switch (level) {
     case log_level_t::debug:
-      return "DBG";
+      return "DEBUG";
     case log_level_t::info:
-      return "INF";
+      return "INFO ";
     case log_level_t::warning:
-      return "WRN";
+      return "WARN ";
     case log_level_t::error:
-      return "ERR";
+      return "ERROR";
     default:
-      return "UNK";
+      return "UNKNO";
     }
   }();
 
-  auto curr_ms = (std::chrono::steady_clock::now() - g_local_epooch) /
-                 std::chrono::milliseconds(1);
   const auto elapsedTime = std::chrono::steady_clock::now() - g_local_epooch;
   const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
-
-  fmt::print(stderr, style, "{:<4}: {}  {}  ", curr_ms, lvl_s, module_name);
+  std::string ts;
+  if (ms < 1000) {
+    ts = fmt::format("{}ms", ms);
+  } else if (ms < 60'000) {
+    ts = fmt::format("{:.1f}s", ms / 1000.0);
+  } else if (ms < 3'600'000) {
+    ts = fmt::format("{}m{:02d}s", ms / 60'000, (ms % 60'000) / 1000);
+  } else {
+    ts = fmt::format("{}h{:02d}m{:02d}s", ms / 3'600'000, (ms % 3'600'000) / 60'000, (ms % 60'000) / 1000);
+  }
+  fmt::print(stderr, style, "{:<10}: {} [{}]  ", ts, lvl_s, module_name);
   fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
   fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
-  fmt::print(stderr, "\n");
+  log_empty_line();
 }
-
-inline void log_empty_line() { fmt::print(stderr, "\n"); }
 
 #ifdef _MSC_VER
 #define log_error(Fmt, ...)                                                    \
