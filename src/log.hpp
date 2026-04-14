@@ -5,6 +5,8 @@
 #include <fmt/format.h>
 
 #include <string_view>
+#include <mutex>
+
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
@@ -154,18 +156,23 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
   const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
   std::string ts;
   if (ms < 1000) {
-    ts = fmt::format("{} ms", ms);
+    ts = fmt::format("{}ms", ms);
   } else if (ms < 60'000) {
-    ts = fmt::format("{:.1f} s", ms / 1000.0);
+    ts = fmt::format("{:.1f}s", ms / 1000.0);
   } else {
-    ts = fmt::format("{} m {:02d} s", ms / 60'000, (ms % 60'000) / 1000);
+    ts = fmt::format("{}m {:02d}s", ms / 60'000, (ms % 60'000) / 1000);
   }
 
-  fmt::print(stderr, style, "{:<10}: {} [{}]  ", ts, lvl_s, module_name);
 
-  fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
-  fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
-  log_empty_line();
+  {
+    static std::mutex log_mutex;
+    std::lock_guard lock(log_mutex);
+
+    fmt::print(stderr, style, "{:<8}: {} [{}]  ", ts, lvl_s, module_name);
+    fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
+    fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
+    log_empty_line();
+  }
 }
 
 #ifdef _MSC_VER
