@@ -58,13 +58,13 @@ fmt::color from_rgb(rgb_color c) {
 }
 
 fmt::color lighter(fmt::color c, double percents) {
-  // assert(percents >= 0.0 && percents <= 1.0);
   auto [r, g, b] = to_rgb(c);
-  r = std::clamp(r + static_cast<unsigned>(r * percents), 0u, 255u);
-  g = std::clamp(g + static_cast<unsigned>(g * percents), 0u, 255u);
-  b = std::clamp(b + static_cast<unsigned>(b * percents), 0u, 255u);
+  r = std::clamp(static_cast<int>(r + r * percents), 0, 255);
+  g = std::clamp(static_cast<int>(g + g * percents), 0, 255);
+  b = std::clamp(static_cast<int>(b + b * percents), 0, 255);
   return from_rgb(rgb_color(r, g, b));
 }
+
 } // namespace
 
 inline void log_empty_line() { fmt::print(stderr, "\n"); }
