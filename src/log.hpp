@@ -113,9 +113,9 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
         return fmt::fg(fmt::color::light_gray);
       case log_level_t::warning:
         return fmt::bg(fmt::color::yellow) | fmt::fg(fmt::color::black);
-      case log_level_t::error:
+    case log_level_t::error:
         return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
-    }
+        }
     return fmt::text_style{};
   })();
   const auto darker_style = ([level, at_tty] {
@@ -165,7 +165,7 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
   fmt::print(stderr, style, "{}", lvl_s);
   fmt::print(stderr, darker_style, " [{}]  ", module_name);
 
-  fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
+  fmt::vprint(stderr, darker_style, fmt, fmt::make_format_args(args...));
   fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
   log_empty_line();
 }
