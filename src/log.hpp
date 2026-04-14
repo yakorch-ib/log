@@ -157,7 +157,7 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
   switch (level) {
     case log_level_t::debug:   return fmt::fg(fmt::color::light_blue);
     case log_level_t::info:    return fmt::fg(fmt::color::light_green);
-    case log_level_t::warning: return fmt::fg(fmt::color::golden_rod);
+    case log_level_t::warning: return fmt::fg(fmt::color::khaki);
     case log_level_t::error:   return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
   }
   return fmt::text_style{};
@@ -180,8 +180,8 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
     std::lock_guard lock(log_mutex);
 
     fmt::print(stderr, style, "{:<8}:", ts);
-    fmt::print(stderr, lvl_style, "{} ", lvl_string);
-    fmt::print(stderr, style, "[{}]  ", module_name);
+    fmt::print(stderr, lvl_style, " {}", lvl_string);
+    fmt::print(stderr, style, " [{}]  ", module_name);
 
     fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
     fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
