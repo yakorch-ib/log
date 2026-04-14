@@ -137,7 +137,7 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
     return fmt::text_style{};
   })();
 
-  const auto lvl_s = [level]() -> std::string_view {
+  const auto lvl_string = [level]() -> std::string_view {
     switch (level) {
       case log_level_t::debug:
         return "DEBUG";
@@ -151,6 +151,17 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
         return "UNKNO";
     }
   }();
+
+  const auto lvl_style = ([level, at_tty] {
+  if (!at_tty) return fmt::text_style{};
+  switch (level) {
+    case log_level_t::debug:   return fmt::fg(fmt::color::light_blue);
+    case log_level_t::info:    return fmt::fg(fmt::color::light_green);
+    case log_level_t::warning: return fmt::fg(fmt::color::golden_rod);
+    case log_level_t::error:   return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
+  }
+  return fmt::text_style{};
+})();
 
   const auto elapsedTime = std::chrono::steady_clock::now() - g_local_epooch;
   const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
@@ -168,9 +179,13 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
     static std::mutex log_mutex;
     std::lock_guard lock(log_mutex);
 
-    fmt::print(stderr, style, "{:<8}: {} [{}]  ", ts, lvl_s, module_name);
+    fmt::print(stderr, style, "{:<8}:", ts);
+    fmt::print(stderr, lvl_style, "{} ", lvl_string);
+    fmt::print(stderr, style, "[{}]  ", module_name);
+
     fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
     fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
+
     log_empty_line();
   }
 }
