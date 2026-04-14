@@ -38,6 +38,7 @@ static_assert(strip_fpath("a/b/c") == "c");
 namespace {
 struct rgb_color {
   rgb_color() = default;
+
   rgb_color(int r, int g, int b) : r(r), g(g), b(b) {}
   int r = 0;
   int g = 0;
@@ -68,10 +69,10 @@ fmt::color lighter(fmt::color c, double percents) {
 
 inline void log_empty_line() { fmt::print(stderr, "\n"); }
 
-template <class... Args>
+template<class... Args>
 void log_impl(log_level_t level, int line, std::string_view file_name,
               std::string_view module_name, fmt::format_string<Args...> fmt,
-              Args &&...args) {
+              Args &&... args) {
   static bool log_level_read = false;
   if (!log_level_read) {
     std::string level_val;
@@ -106,14 +107,14 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
       return fmt::text_style{};
     }
     switch (level) {
-    case log_level_t::debug:
-      return fmt::fg(fmt::color::gray);
-    case log_level_t::info:
-      return fmt::fg(fmt::color::light_gray);
-    case log_level_t::warning:
-      return fmt::bg(fmt::color::yellow) | fmt::fg(fmt::color::black);
-    case log_level_t::error:
-      return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
+      case log_level_t::debug:
+        return fmt::fg(fmt::color::gray);
+      case log_level_t::info:
+        return fmt::fg(fmt::color::light_gray);
+      case log_level_t::warning:
+        return fmt::bg(fmt::color::yellow) | fmt::fg(fmt::color::black);
+      case log_level_t::error:
+        return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
     }
     return fmt::text_style{};
   })();
@@ -122,30 +123,30 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
       return fmt::text_style{};
     }
     switch (level) {
-    case log_level_t::debug:
-      return fmt::fg(lighter(fmt::color::gray, -0.5));
-    case log_level_t::info:
-      return fmt::fg(lighter(fmt::color::light_gray, -0.5));
-    case log_level_t::warning:
-      return fmt::bg(fmt::color::yellow) | fmt::fg(fmt::color::black);
-    case log_level_t::error:
-      return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
+      case log_level_t::debug:
+        return fmt::fg(lighter(fmt::color::gray, -0.5));
+      case log_level_t::info:
+        return fmt::fg(lighter(fmt::color::light_gray, -0.5));
+      case log_level_t::warning:
+        return fmt::bg(fmt::color::yellow) | fmt::fg(fmt::color::black);
+      case log_level_t::error:
+        return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
     }
     return fmt::text_style{};
   })();
 
   const auto lvl_s = [level]() -> std::string_view {
     switch (level) {
-    case log_level_t::debug:
-      return "DEBUG";
-    case log_level_t::info:
-      return "INFO ";
-    case log_level_t::warning:
-      return "WARN ";
-    case log_level_t::error:
-      return "ERROR";
-    default:
-      return "UNKNO";
+      case log_level_t::debug:
+        return "DEBUG";
+      case log_level_t::info:
+        return "INFO ";
+      case log_level_t::warning:
+        return "WARN ";
+      case log_level_t::error:
+        return "ERROR";
+      default:
+        return "UNKNO";
     }
   }();
 
@@ -156,12 +157,14 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
     ts = fmt::format("{}ms", ms);
   } else if (ms < 60'000) {
     ts = fmt::format("{:.1f}s", ms / 1000.0);
-  } else if (ms < 3'600'000) {
-    ts = fmt::format("{}m{:02d}s", ms / 60'000, (ms % 60'000) / 1000);
   } else {
-    ts = fmt::format("{}h{:02d}m{:02d}s", ms / 3'600'000, (ms % 3'600'000) / 60'000, (ms % 60'000) / 1000);
+    ts = fmt::format("{}m {:02d}s", ms / 60'000, (ms % 60'000) / 1000);
   }
-  fmt::print(stderr, style, "{:<10}: {} [{}]  ", ts, lvl_s, module_name);
+
+  fmt::print(stderr, darker_style, "{:<9}: ", ts);
+  fmt::print(stderr, style, "{}", lvl_s);
+  fmt::print(stderr, darker_style, " [{}]  ", module_name);
+
   fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
   fmt::print(stderr, darker_style, " ({}:{}) ", strip_fpath(file_name), line);
   log_empty_line();
