@@ -148,6 +148,8 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
 
   auto curr_ms = (std::chrono::steady_clock::now() - g_local_epooch) /
                  std::chrono::milliseconds(1);
+  const auto elapsedTime = std::chrono::steady_clock::now() - g_local_epooch;
+  const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
 
   fmt::print(stderr, style, "{:<4}: {}  {}  ", curr_ms, lvl_s, module_name);
   fmt::vprint(stderr, style, fmt, fmt::make_format_args(args...));
