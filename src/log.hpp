@@ -128,7 +128,7 @@ void log_impl(log_level_t level, int line, std::string_view file_name,
       case log_level_t::info:
         return fmt::fg(lighter(fmt::color::light_gray, -0.5));
       case log_level_t::warning:
-        return fmt::fg(fmt::color::golden_rod);
+        return fmt::fg(lighter(fmt::color::golden_rod, -0.5));
       case log_level_t::error:
         return fmt::bg(fmt::color::indian_red) | fmt::fg(fmt::color::white);
     }
